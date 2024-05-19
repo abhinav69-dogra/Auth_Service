@@ -1,6 +1,8 @@
 const UserRepository = require('../repository/user-repository');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const {JWT_KEY} = require('../config/serverConfig');
+const { response } = require('express');
 
 
 class UserService {
@@ -18,6 +20,23 @@ class UserService {
         }
     }
 
+    async signin(email,plainPassword){
+
+        try {
+            const user = await this.userRepository.getByEmail(email);
+            const passwordMatch=this.checkPassword(plainPassword,user.password);
+            if(!passwordMatch){
+                console.log("Password doesn't match");
+                throw {error : 'Incorrect Password'};
+            }
+            const newJwt = this.createToken({email : user.email, id: user.id});
+            return newJwt;
+        } catch (error) {
+            console.log("Something went wrong in the service layer");
+            throw error;
+            
+        }
+    }
      createToken(user){
         try {
             const result = jwt.sign(user,JWT_KEY, {expiresIn : '1d' });
@@ -40,6 +59,34 @@ class UserService {
             
         }
      }
+
+     checkPassword(userInputPlainPassword,encryptedPassword){
+        try {
+            return bcrypt.compareSync(userInputPlainPassword,encryptedPassword);
+        } catch (error) {
+            console.log("Something went wrong in password comparison");
+            throw error;
+            
+        }
+     }
+
+    async isAuthenticated(token){
+      try {
+        
+        const isVerified = userService.verifyToken(token);
+        if(!isVerified){
+            throw {error : 'Invalid token'}
+        }
+        const user= this.userRepository.getById(response.id);
+        if(!user){
+            throw {error : 'No user with corresponding token exists'};
+        }
+        return user.id; 
+    } catch (error) {  
+        console.log("Something went wrong in token authentication process");
+        throw error;
+    }
+}
 }
 
 module.exports = UserService;
