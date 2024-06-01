@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const {JWT_KEY} = require('../config/serverConfig');
 const { response } = require('express');
+const AppErrors = require('../utils/error-handler');
 
 
 class UserService {
@@ -15,8 +16,13 @@ class UserService {
             const user = await this.userRepository.create(data);
             return user;
         } catch (error) {
+            console.log("Service error", error.name);  
+            if(error.name== 'SequelizeValidationError'){
+                throw error;
+            }
             console.log("Something went wrong in the service layer");
-            throw error;
+            throw new AppErrors('ServerError', 'Something went wrong in Service','logical issue found', 500
+            )
         }
     }
 
@@ -86,6 +92,16 @@ class UserService {
         console.log("Something went wrong in token authentication process");
         throw error;
     }
+}
+
+isAdmin(userId){
+    try {
+        return this.userRepository.isAdmin(userId);
+    } catch (error) {
+        console.log("Something went wrong in service layer");
+        throw error; 
+    }
+
 }
 }
 

@@ -16,10 +16,10 @@ const prepareAndStartServer = () => {
     app.use('/api', apiRoutes);
     app.listen(PORT, () => {
         console.log(`Server Satrted on Port : ${PORT}`);
-        if(process.env.DB_SYNC){
-            db.sequelize.sync({alter : true})
+        // if(process.env.DB_SYNC){
+        //     db.sequelize.sync({alter : true})
 
-        }
+        // }
         // const repo=new UserRepository();
         // const res=repo.getById(1);
         // console.log(res);
